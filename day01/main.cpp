@@ -6,7 +6,6 @@
 #include <ranges>
 
 int main() {
-
     auto answer1{0ll}, answer2{0ll};
     auto f = std::ifstream{"input.txt"};
     auto line = std::string{};
