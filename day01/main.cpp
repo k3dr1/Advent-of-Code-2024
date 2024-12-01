@@ -1,10 +1,10 @@
+#include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <ranges>
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include <algorithm>
-#include <ranges>
 
 using ll = long long;
 
