@@ -13,7 +13,7 @@ constexpr std::array<int, 4> chars{'^', '>', 'v', '<', };
 int rotate(int dir) { return (dir+1)%4; }
 bool check_bounds(int y, int x, const auto& grid) { return !((y < 0 || grid.size() <= y) || (x < 0 || grid.at(0).size() <= x)); }
 
-std::pair<int,int> advance(int y, int x, int dir)
+inline std::pair<int,int> advance(int y, int x, int dir)
 {
     switch (dir) {
     case 0:
@@ -38,17 +38,16 @@ std::pair<int,int> right_of(int y, int x, int dir) { return advance(y, x, (dir+1
 bool detect_loop(int y, int x, int dir, const auto& grid) {
     const auto starty = y;
     const auto startx = x;
+    const auto [obstacley, obstaclex] = advance(y, x, dir);
     dir = rotate(dir);
 
     auto hash = [](const int y, const int x, const int dir) -> i64 {
-        return (i64(y)) ^ ((i64(x))<<32) ^ (i64(dir))<<62;
+        return (i64(y)) ^ ((i64(x))<<32) ^ ((i64(dir))<<62);
     };
-
     std::unordered_map<i64, bool> visited{};
 
-    auto steps{0};
     while (check_bounds(y, x, grid)) {
-        if (0 < steps && (visited.contains(hash(y, x, dir)))) {
+        if (visited.contains(hash(y, x, dir))) {
             return true;
         }
         visited[hash(y, x, dir)] = true;
@@ -56,22 +55,24 @@ bool detect_loop(int y, int x, int dir, const auto& grid) {
         if (!check_bounds(nexty, nextx, grid)) {
             break;
         }
-        if (grid.at(nexty).at(nextx) == '#' || grid.at(nexty).at(nextx) == 'O') {
+        // Early exit, there's already a loop there
+        if (grid.at(nexty).at(nextx) == chars[dir]) return true;
+        if (grid.at(nexty).at(nextx) == '#' || (nexty == obstacley && nextx == obstaclex)) {
             dir = rotate(dir);
             continue;
         } else {
             y = nexty;
             x = nextx;
-            steps++;
         }
     }
     return false;
 }
 
 int main() {
-    auto answer1{0};
+    auto covered{0};
     auto obstacle_count{0};
-    auto f = std::fstream("funny.txt");
+
+    auto f = std::fstream("input.txt");
     auto blockhash = [](const int y, const int x) -> i64 { return ((i64(y))<<32) ^ (i64(x)); };
     std::unordered_map<i64,int> blocks{};
     std::vector<std::vector<char>> grid{};
@@ -83,12 +84,14 @@ int main() {
 
     auto startx = -1;
     auto starty = -1;
+    auto start_found{false};
 
-    for (int y = 0; y < grid.size(); y++) {
-        for (int x = 0; x < grid.at(0).size(); x++) {
+    for (int y = 0; y < grid.size() && !start_found; y++) {
+        for (int x = 0; x < grid.at(0).size() && !start_found; x++) {
             if (grid.at(y).at(x) == '^') {
                 starty = y;
                 startx = x;
+                start_found = true;
             }
         }
     }
@@ -107,18 +110,14 @@ int main() {
             direction = rotate(direction);
             continue;
         } else {
-            auto bak = grid.at(nexty).at(nextx);
-            grid.at(nexty).at(nextx) = 'O';
-            if (bak == '.' && detect_loop(cury, curx, direction, grid)) {
+            if (grid.at(nexty).at(nextx) == '.' && detect_loop(cury, curx, direction, grid)) {
                     blocks[blockhash(nexty,nextx)]++;
             }
-            grid.at(nexty).at(nextx) = bak;
             cury = nexty;
             curx = nextx;
         }
     }
 
-    auto covered{0};
     for (auto row : grid) {
         covered += std::ranges::count(row, '^');
         covered += std::ranges::count(row, '>');
