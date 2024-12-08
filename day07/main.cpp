@@ -1,4 +1,3 @@
-#include <cmath>
 #include <cstdint>
 #include <fstream>
 #include <ranges>
@@ -7,13 +6,6 @@
 #include <vector>
 
 using i64 = std::int64_t;
-
-//i64 concatenate(i64 a, i64 b) {
-//    auto oldb = b;
-//    auto logb = 0;
-//    for (; b > 0; b/=10) logb++;
-//    return a * pow(10, logb) + oldb;
-//}
 
 i64 concatenate(i64 a, i64 b) {
     auto oldb = b;
