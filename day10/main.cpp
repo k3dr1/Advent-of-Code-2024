@@ -46,7 +46,7 @@ i64 num_trails(i64 _y, i64 _x, const std::vector<std::vector<char>>& grid) {
 int main() {
     std::atomic_uint64_t answer1{0};
     std::atomic_uint64_t answer2{0};
-    auto f = std::ifstream("bigboy.txt");
+    auto f = std::ifstream{"input.txt"};
     auto grid = std::vector<std::vector<char>>{};
     for (std::string line{}; std::getline(f, line);) grid.emplace_back(line.begin(), line.end());
     auto trailheads = iota(0uz, grid.size())
