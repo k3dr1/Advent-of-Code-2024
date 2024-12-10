@@ -7,9 +7,10 @@
 #include <ranges>
 #include <utility>
 #include <vector>
+#include <execution>
 
-using std::make_pair,  std::ranges::for_each;
 using namespace std::views;
+using std::make_pair;
 using i64 = std::int64_t;
 using u64 = std::uint64_t;
 
@@ -44,21 +45,28 @@ i64 num_trails(i64 _y, i64 _x, const std::vector<std::vector<char>>& grid, bool 
 }
 
 int main() {
-    i64 answer1{0};
-    i64 answer2{0};
+    std::atomic_uint64_t answer1{0};
+    std::atomic_uint64_t answer2{0};
     auto f = std::ifstream("bigboy.txt");
     auto grid = std::vector<std::vector<char>>{};
     for (std::string line{}; std::getline(f, line);) grid.emplace_back(line.begin(), line.end());
-    for_each(
-        iota(0uz, grid.size())
-            | transform([&](const auto& num) { return zip(repeat(num, grid.at(0).size()), iota(0uz, grid.at(0).size())); })
-            | join
-            | filter([&](const auto& p) { const auto& [y, x] = p; return (grid.at(y).at(x) == '0'); }),
+    auto trailheads = iota(0uz, grid.size())
+        | transform([&](const auto& num) { return zip(repeat(num, grid.at(0).size()), iota(0uz, grid.at(0).size())); })
+        | join
+        | filter([&](const auto& p) { const auto& [y, x] = p; return (grid.at(y).at(x) == '0'); })
+        | common
+        | std::ranges::to<std::vector<std::pair<i64, i64>>>();
+
+    std::for_each(
+        std::execution::par_unseq,
+        trailheads.cbegin(),
+        trailheads.cend(),
         [&](const auto& p) {
             const auto& [y, x] = p;
             answer1 += num_trails(y, x, grid, false);
             answer2 += num_trails(y, x, grid, true);
         });
+
     std::cout << "answer1=" << answer1 << '\n';
     std::cout << "answer2=" << answer2 << '\n';
     return 0;
