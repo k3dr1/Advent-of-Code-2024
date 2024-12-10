@@ -16,15 +16,14 @@ using u64 = std::uint64_t;
 
 bool check_bounds(int y, int x, const auto& grid) { return !((y < 0 || grid.size() <= y) || (x < 0 || grid.at(0).size() <= x)); }
 
-i64 num_trails(i64 _y, i64 _x, const std::vector<std::vector<char>>& grid, bool ispart2) {
-    if (!check_bounds(_y, _x, grid)) return -1;
-    if (grid.at(_y).at(_x) != '0') return -1;
+template<bool IsPart2>
+i64 num_trails(i64 _y, i64 _x, const std::vector<std::vector<char>>& grid) {
     i64 res{0};
     auto hash = [](const auto& y, const auto& x) { return ((((u64)y) << (32UL)) | ((u64)x)); };
     std::vector<std::pair<i64,i64>> stk{make_pair(_y,_x)};
     std::unordered_map<i64,bool> visited{};
     while (!stk.empty()) {
-        auto [y, x] = stk.back();
+        const auto [y, x] = stk.back();
         stk.pop_back();
         visited[hash(y,x)] = true;
         if (grid.at(y).at(x) == '9') {
@@ -32,13 +31,13 @@ i64 num_trails(i64 _y, i64 _x, const std::vector<std::vector<char>>& grid, bool 
         } else {
             auto curval = grid.at(y).at(x);
             if (check_bounds(y-1, x, grid) && ((curval + 1) == grid[y-1][x])
-                && (ispart2 || (!visited.contains(hash(y-1, x))))) stk.push_back(make_pair(y-1, x));
+                && (IsPart2 || (!visited.contains(hash(y-1, x))))) stk.push_back(make_pair(y-1, x));
             if (check_bounds(y+1, x, grid) && ((curval + 1) == grid[y+1][x])
-                && (ispart2 || (!visited.contains(hash(y+1, x))))) stk.push_back(make_pair(y+1, x));
+                && (IsPart2 || (!visited.contains(hash(y+1, x))))) stk.push_back(make_pair(y+1, x));
             if (check_bounds(y, x+1, grid) && ((curval + 1) == grid[y][x+1])
-                && (ispart2 || (!visited.contains(hash(y, x+1))))) stk.push_back(make_pair(y, x+1));
+                && (IsPart2 || (!visited.contains(hash(y, x+1))))) stk.push_back(make_pair(y, x+1));
             if (check_bounds(y, x-1, grid) && ((curval + 1) == grid[y][x-1])
-                && (ispart2 || (!visited.contains(hash(y, x-1))))) stk.push_back(make_pair(y, x-1));
+                && (IsPart2 || (!visited.contains(hash(y, x-1))))) stk.push_back(make_pair(y, x-1));
         }
     }
     return res;
@@ -63,8 +62,8 @@ int main() {
         trailheads.cend(),
         [&](const auto& p) {
             const auto& [y, x] = p;
-            answer1 += num_trails(y, x, grid, false);
-            answer2 += num_trails(y, x, grid, true);
+            answer1 += num_trails<false>(y, x, grid);
+            answer2 += num_trails<true>(y, x, grid);
         });
 
     std::cout << "answer1=" << answer1 << '\n';
