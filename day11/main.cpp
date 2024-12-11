@@ -9,6 +9,7 @@
 #include <utility>
 #include <vector>
 #include <ranges>
+#include <print>
 
 using i64 = std::int64_t;
 using u64 = std::uint64_t;
@@ -95,13 +96,8 @@ int main() {
     i64 n{0};
     while (ls >> n) ns.push_back(n);
 
-    //std::cout << "Top down\n";
-    //std::cout << "answer1=" << top_down(ns, 25) << '\n';
-    //std::cout << "answer2=" << top_down(ns, 75) << '\n';
-
-    std::cout << "Bottom up\n";
-    std::cout << "answer1=" << bottom_up(ns, 25) << '\n';
-    std::cout << "answer2=" << bottom_up(ns, 75) << '\n';
+    std::println("Top down: answer1={}, answer2={}", top_down(ns, 25), top_down(ns, 75));
+    std::println("Bottom up: answer1={}, answer2={}", bottom_up(ns, 25), bottom_up(ns, 75));
 
     return 0;
 }
