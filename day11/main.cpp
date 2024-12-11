@@ -88,7 +88,7 @@ auto bottom_up(const auto& nums, i64 blinks) {
 }
 
 int main() {
-    auto f = std::ifstream("bigboy.txt");
+    auto f = std::ifstream("input.txt");
     std::string line{};
     std::getline(f, line);
     auto ls = std::istringstream(line);
