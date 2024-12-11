@@ -62,18 +62,18 @@ auto top_down(const auto& nums, i64 blinks) {
 
 auto bottom_up(const auto& nums, i64 blinks) {
     i64 blink = 0;
-    std::array maps = { std::unordered_map<i64, i64> {}, std::unordered_map<i64, i64> {}};
-    for (const auto num : nums) maps[0][num]++;
+    auto readmap = std::unordered_map<i64, i64> {};
+    auto writemap = std::unordered_map<i64, i64> {};
+    for (const auto num : nums) readmap[num]++;
     for (; blink < blinks; blink++) {
-        auto& writemap = maps[!(blink&1)];
         writemap.clear();
-        for (const auto& [n, count] : maps[blink&1]) {
+        for (const auto& [n, count] : readmap) {
             if (n == 0) {
                 writemap[1ll] += count;
                 continue;
             }
             const auto nd = num_digits(n);
-            if (nd%2 == 0) {
+            if (!(nd&1)) {
                 auto pow = 1ll;
                 for (auto j = nd/2; j; j--) pow*=10ll;
                 writemap[(n/(pow))] += count;
@@ -82,8 +82,9 @@ auto bottom_up(const auto& nums, i64 blinks) {
                 writemap[n*2024] += count;
             }
         }
+        std::swap(readmap, writemap);
     }
-    return std::ranges::fold_left(maps[blink & 1] | std::views::values, 0ll, std::plus<>());
+    return std::ranges::fold_left(readmap | std::views::values, 0ll, std::plus<>());
 }
 
 int main() {
@@ -96,7 +97,7 @@ int main() {
     i64 n{0};
     while (ls >> n) ns.push_back(n);
 
-    std::println("Top down: answer1={}, answer2={}", top_down(ns, 25), top_down(ns, 75));
+    std::println("Top down : answer1={}, answer2={}", top_down(ns, 25), top_down(ns, 75));
     std::println("Bottom up: answer1={}, answer2={}", bottom_up(ns, 25), bottom_up(ns, 75));
 
     return 0;
