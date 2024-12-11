@@ -1,20 +1,17 @@
 #include <algorithm>
-#include <array>
-#include <cmath>
 #include <cstdint>
-#include <functional>
-#include <ranges>
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <sstream>
 #include <string>
 #include <unordered_map>
 #include <utility>
 #include <vector>
-#include <execution>
+#include <ranges>
 
 using i64 = std::int64_t;
-using u64 = std::int64_t;
+using u64 = std::uint64_t;
 
 struct hash {
     auto operator()(const std::pair<i64,i64>& p) const {
@@ -22,41 +19,74 @@ struct hash {
     }
 };
 
-std::unordered_map<std::pair<i64,i64>,i64, hash> memo{};
-auto hash = [](const auto& y, const auto& x) { return ((((u64)y) << (32UL)) | ((u64)x)); };
+auto num_digits(auto n) -> i64 {
+    i64 res { 0 };
+    while (n > 0) {
+        n /= 10;
+        res++;
+    }
+    return res;
+}
 
-auto breakdown(i64 x, i64 blinks) -> i64 {
+std::unordered_map<std::pair<i64,i64>,i64, hash> memo{};
+auto breakdown(i64 n, i64 blinks) -> i64 {
     if (blinks == 0) {
         return 1;
     }
     else {
-        if (memo.contains(std::make_pair(x, blinks))) {
-            return memo.at(std::make_pair(x, blinks));
-        }
-        if (x == 0) return breakdown(1, blinks-1);
-        const auto nd = i64(std::log10l(x)) + 1;
+        if (n == 0) return breakdown(1, blinks-1);
+        if (memo.contains(std::make_pair(n, blinks))) return memo.at(std::make_pair(n, blinks));
+        const auto nd = num_digits(n);
         if (nd%2 == 0) {
             auto pow = 1;
             for (auto j = nd/2; j; j--) pow*=10;
-            std::array<i64, 2> xs{x/(pow), x%(pow)};
-            std::array<i64, 2> rs{0,0};
-            std::transform(std::execution::seq, xs.begin(), xs.end(), rs.begin(), [&](auto v) {
-                return breakdown(v, blinks - 1);
-            });
-            memo[std::make_pair(xs[0], blinks-1)] = rs[0];
-            memo[std::make_pair(xs[1], blinks-1)] = rs[1];
-            return std::ranges::fold_left(rs, 0, std::plus());
+            const auto res = breakdown(n/(pow), blinks-1) + breakdown(n%(pow), blinks-1);
+            memo[std::make_pair(n, blinks)] = res;
+            return res;
         } else {
-            const auto& res = breakdown(x*2024, blinks-1);
-            memo[std::make_pair(x*2024, blinks-1)] = res;
+            const auto res = breakdown(n*2024, blinks-1);
+            memo[std::make_pair(n, blinks)] = res;
             return res;
         }
     }
 }
 
-int main() {
+auto top_down(const auto& nums, i64 blinks) {
+    i64 res{};
+    for (const auto& n : nums) {
+        res += breakdown(n, blinks);
+    }
+    return res;
+}
 
-    auto f = std::ifstream("input.txt");
+auto bottom_up(const auto& nums, i64 blinks) {
+    i64 blink = 0;
+    std::array maps = { std::unordered_map<i64, i64> {}, std::unordered_map<i64, i64> {}};
+    for (const auto num : nums) maps[0][num]++;
+    for (; blink < blinks; blink++) {
+        auto& writemap = maps[!(blink&1)];
+        writemap.clear();
+        for (const auto& [n, count] : maps[blink&1]) {
+            if (n == 0) {
+                writemap[1ll] += count;
+                continue;
+            }
+            const auto nd = num_digits(n);
+            if (nd%2 == 0) {
+                auto pow = 1ll;
+                for (auto j = nd/2; j; j--) pow*=10ll;
+                writemap[(n/(pow))] += count;
+                writemap[(n%(pow))] += count;
+            } else {
+                writemap[n*2024] += count;
+            }
+        }
+    }
+    return std::ranges::fold_left(maps[blink & 1] | std::views::values, 0ll, std::plus<>());
+}
+
+int main() {
+    auto f = std::ifstream("bigboy.txt");
     std::string line{};
     std::getline(f, line);
     auto ls = std::istringstream(line);
@@ -65,15 +95,13 @@ int main() {
     i64 n{0};
     while (ls >> n) ns.push_back(n);
 
-    i64 answer1 { 0 };
-    i64 answer2 { 0 };
-    for (auto&& x : ns) {
-        answer1 += breakdown(x, 25);
-        answer2 += breakdown(x, 75);
-    }
+    //std::cout << "Top down\n";
+    //std::cout << "answer1=" << top_down(ns, 25) << '\n';
+    //std::cout << "answer2=" << top_down(ns, 75) << '\n';
 
-    std::cout << "answer1=" << answer1 << '\n';
-    std::cout << "answer2=" << answer2 << '\n';
+    std::cout << "Bottom up\n";
+    std::cout << "answer1=" << bottom_up(ns, 25) << '\n';
+    std::cout << "answer2=" << bottom_up(ns, 75) << '\n';
 
     return 0;
 }
