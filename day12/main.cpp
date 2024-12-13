@@ -1,16 +1,14 @@
 #include <array>
 #include <cstdint>
-#include <cstdlib>
 #include <fstream>
-#include <iostream>
-#include <ostream>
+#include <print>
 #include <ranges>
 #include <stack>
 #include <string>
 #include <unordered_map>
 #include <utility>
 #include <vector>
-#include <print>
+
 using ll = std::int64_t;
 using u64 = std::uint64_t;
 
