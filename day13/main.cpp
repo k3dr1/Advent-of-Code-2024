@@ -27,8 +27,7 @@ int main() {
     while (true) {
         std::string line {};
         std::getline(f, line);
-        if (line.size() < 3)
-            break;
+        if (line.size() < 3) break;
         vec2 A = { std::stoll(line.substr(line.find_first_of('+') + 1)), std::stoll(line.substr(line.find_last_of('+') + 1)) };
         std::getline(f, line);
         vec2 B = { std::stoll(line.substr(line.find_first_of('+') + 1)), std::stoll(line.substr(line.find_last_of('+') + 1)) };
