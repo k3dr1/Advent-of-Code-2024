@@ -1,5 +1,4 @@
 #include <cstdint>
-#include <cstdlib>
 #include <fstream>
 #include <utility>
 #include <vector>
@@ -60,7 +59,7 @@ auto try_move(char dirchar, auto& grid) -> bool {
     return false;
 }
 
-auto can_box_move_vert2(char dirchar, std::pair<i64, i64> pos, const std::vector<std::vector<char>>& grid) -> bool {
+auto can_box_move_vert(char dirchar, std::pair<i64, i64> pos, const std::vector<std::vector<char>>& grid) -> bool {
     auto above = add(pos, chartovec(dirchar));
     auto above_right = add(above, chartovec('>'));
     if (!check_bounds(above.first, above.second, grid)) return false;
@@ -68,10 +67,10 @@ auto can_box_move_vert2(char dirchar, std::pair<i64, i64> pos, const std::vector
     auto above_val = grid.at(above.first).at(above.second);
     auto above_right_val = grid.at(above_right.first).at(above_right.second);
     if (above_val == '.' && above_right_val == '.') return true;
-    if (above_val == '[' && above_right_val == ']') return can_box_move_vert2(dirchar, above, grid);
-    if (above_val == ']' && above_right_val == '[') return can_box_move_vert2(dirchar, add(above, chartovec('<')), grid) && can_box_move_vert2(dirchar, above_right, grid);
-    if (above_val == ']' && above_right_val == '.') return can_box_move_vert2(dirchar, add(above, chartovec('<')), grid);
-    if (above_val == '.' && above_right_val == '[') return can_box_move_vert2(dirchar, above_right, grid);
+    if (above_val == '[' && above_right_val == ']') return can_box_move_vert(dirchar, above, grid);
+    if (above_val == ']' && above_right_val == '[') return can_box_move_vert(dirchar, add(above, chartovec('<')), grid) && can_box_move_vert(dirchar, above_right, grid);
+    if (above_val == ']' && above_right_val == '.') return can_box_move_vert(dirchar, add(above, chartovec('<')), grid);
+    if (above_val == '.' && above_right_val == '[') return can_box_move_vert(dirchar, above_right, grid);
     if (above_val == '#' || above_right_val == '#') return false;
 }
 
@@ -81,12 +80,12 @@ auto can_robot_move_vert(char dirchar, const std::vector<std::vector<char>>& gri
     if (!check_bounds(above.first, above.second, grid)) return false;
     if (grid.at(above.first).at(above.second) == '.') return true;
     if (grid.at(above.first).at(above.second) == '#') return false;
-    if (grid.at(above.first).at(above.second) == '[') return can_box_move_vert2(dirchar, above, grid);
-    if (grid.at(above.first).at(above.second) == ']') return can_box_move_vert2(dirchar, add(above, chartovec('<')), grid);
+    if (grid.at(above.first).at(above.second) == '[') return can_box_move_vert(dirchar, above, grid);
+    if (grid.at(above.first).at(above.second) == ']') return can_box_move_vert(dirchar, add(above, chartovec('<')), grid);
     return false;
 }
 
-auto box_move2(char dirchar, std::pair<i64, i64> box, std::vector<std::vector<char>>& grid) -> bool {
+auto box_move(char dirchar, std::pair<i64, i64> box, std::vector<std::vector<char>>& grid) -> bool {
     auto box_right = add(box, chartovec('>'));
     auto above = add(box, chartovec(dirchar));
     auto above_right = add(above, chartovec('>'));
@@ -101,7 +100,7 @@ auto box_move2(char dirchar, std::pair<i64, i64> box, std::vector<std::vector<ch
         return true;
     }
     if (above_val == '[' && above_right_val == ']') {
-        box_move2(dirchar, above, grid);
+        box_move(dirchar, above, grid);
         std::swap(grid.at(box.first).at(box.second), 
                   grid.at(above.first).at(above.second));
         std::swap(grid.at(box_right.first).at(box_right.second), 
@@ -109,8 +108,8 @@ auto box_move2(char dirchar, std::pair<i64, i64> box, std::vector<std::vector<ch
         return true;
     }
     if (above_val == ']' && above_right_val == '[') {
-        box_move2(dirchar, add(above, chartovec('<')), grid);
-        box_move2(dirchar, above_right, grid);
+        box_move(dirchar, add(above, chartovec('<')), grid);
+        box_move(dirchar, above_right, grid);
         std::swap(grid.at(box.first).at(box.second), 
                   grid.at(above.first).at(above.second));
         std::swap(grid.at(box_right.first).at(box_right.second), 
@@ -118,7 +117,7 @@ auto box_move2(char dirchar, std::pair<i64, i64> box, std::vector<std::vector<ch
         return true;
     }
     if (above_val == ']' && above_right_val == '.') {
-        box_move2(dirchar, add(above, chartovec('<')), grid);
+        box_move(dirchar, add(above, chartovec('<')), grid);
         std::swap(grid.at(box.first).at(box.second), 
                   grid.at(above.first).at(above.second));
         std::swap(grid.at(box_right.first).at(box_right.second), 
@@ -126,7 +125,7 @@ auto box_move2(char dirchar, std::pair<i64, i64> box, std::vector<std::vector<ch
         return true;
     }
     if (above_val == '.' && above_right_val == '[') {
-        box_move2(dirchar, above_right, grid);
+        box_move(dirchar, above_right, grid);
         std::swap(grid.at(box.first).at(box.second), 
                   grid.at(above.first).at(above.second));
         std::swap(grid.at(box_right.first).at(box_right.second), 
@@ -140,8 +139,8 @@ auto try_robot_move(char dirchar, std::vector<std::vector<char>>& grid) {
     auto above = add(robot, chartovec(dirchar));
     if (grid.at(above.first).at(above.second) == '.') return std::swap(grid.at(robot.first).at(robot.second), grid.at(above.first).at(above.second)), true;
     if (grid.at(above.first).at(above.second) == '#') return false;
-    if (grid.at(above.first).at(above.second) == '[') return box_move2(dirchar, above, grid) ? std::swap(grid.at(robot.first).at(robot.second), grid.at(above.first).at(above.second)), true : false;
-    if (grid.at(above.first).at(above.second) == ']') return box_move2(dirchar, add(above, chartovec('<')), grid) ? std::swap(grid.at(robot.first).at(robot.second), grid.at(above.first).at(above.second)), true : false;
+    if (grid.at(above.first).at(above.second) == '[') return box_move(dirchar, above, grid) ? std::swap(grid.at(robot.first).at(robot.second), grid.at(above.first).at(above.second)), true : false;
+    if (grid.at(above.first).at(above.second) == ']') return box_move(dirchar, add(above, chartovec('<')), grid) ? std::swap(grid.at(robot.first).at(robot.second), grid.at(above.first).at(above.second)), true : false;
     return false;
 }
 
