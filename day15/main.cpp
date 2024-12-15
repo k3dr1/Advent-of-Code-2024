@@ -5,8 +5,9 @@
 #include <vector>
 #include <string>
 #include <print>
+#include <ranges>
 
-using ll = std::int64_t;
+using i64 = std::int64_t;
 
 auto printgrid(const auto& grid) {
     for (const auto& row : grid) {
@@ -23,29 +24,12 @@ auto chartovec(char ch) {
         case '>': return std::make_pair( 0,  1);
         case 'v': return std::make_pair( 1,  0);
         case '<': return std::make_pair( 0, -1);
-        default: {
-            std::println("Error in chartovec");
-            std::exit(-1);
-        }
     }
 }
 
-auto add(std::pair<ll,ll> a, decltype(a) b) -> decltype(a) {
-    return {a.first + b.first, a.second + b.second};
-}
-
+auto add(std::pair<i64,i64> a, decltype(a) b) -> decltype(a) { return {a.first + b.first, a.second + b.second}; }
 bool check_bounds(int y, int x, const auto& grid) { return !((y < 0 || grid.size() <= y) || (x < 0 || grid.at(0).size() <= x)); }
-
-auto find_robot(const auto& grid) -> std::pair<ll,ll> {
-    for (ll y = 0; y < grid.size(); y++) {
-        for (ll x = 0; x < grid.at(0).size(); x++) {
-            if (grid.at(y).at(x) == '@') {
-                return std::make_pair(y, x);
-            }
-        }
-    }
-    return std::make_pair(-1, -1);
-}
+auto find_robot(const auto& grid) -> std::pair<i64,i64> { for (i64 y = 0; y < grid.size(); y++) for (i64 x = 0; x < grid.at(0).size(); x++) if (grid.at(y).at(x) == '@') return std::make_pair(y, x); }
 
 auto try_move(char dirchar, auto& grid) -> bool {
     auto dirvec = chartovec(dirchar);
@@ -76,39 +60,22 @@ auto try_move(char dirchar, auto& grid) -> bool {
     return false;
 }
 
-auto can_box_move_vert2(char dirchar, std::pair<ll, ll> pos, const std::vector<std::vector<char>>& grid) -> bool {
+auto can_box_move_vert2(char dirchar, std::pair<i64, i64> pos, const std::vector<std::vector<char>>& grid) -> bool {
     auto above = add(pos, chartovec(dirchar));
     auto above_right = add(above, chartovec('>'));
     if (!check_bounds(above.first, above.second, grid)) return false;
     if (!check_bounds(above_right.first, above_right.second, grid)) return false;
     auto above_val = grid.at(above.first).at(above.second);
     auto above_right_val = grid.at(above_right.first).at(above_right.second);
-
-    if (above_val == '.' && above_right_val == '.') {
-        return true;
-    }
-    if (above_val == '[' && above_right_val == ']') {
-        return can_box_move_vert2(dirchar, above, grid);
-    }
-    if (above_val == ']' && above_right_val == '[') {
-        return can_box_move_vert2(dirchar, add(above, chartovec('<')), grid)
-            && can_box_move_vert2(dirchar, above_right, grid);
-    }
-    if (above_val == ']' && above_right_val == '.') {
-        return can_box_move_vert2(dirchar, add(above, chartovec('<')), grid);
-    }
-    if (above_val == '.' && above_right_val == '[') {
-        return can_box_move_vert2(dirchar, above_right, grid);
-    }
-    if (above_val == '#' || above_right_val == '#') {
-        return false;
-    }
-
-    std::println("Unhandled situation in can_move_vert2: {} {},{}", dirchar, pos.first, pos.second);
-    std::exit(-1);
+    if (above_val == '.' && above_right_val == '.') return true;
+    if (above_val == '[' && above_right_val == ']') return can_box_move_vert2(dirchar, above, grid);
+    if (above_val == ']' && above_right_val == '[') return can_box_move_vert2(dirchar, add(above, chartovec('<')), grid) && can_box_move_vert2(dirchar, above_right, grid);
+    if (above_val == ']' && above_right_val == '.') return can_box_move_vert2(dirchar, add(above, chartovec('<')), grid);
+    if (above_val == '.' && above_right_val == '[') return can_box_move_vert2(dirchar, above_right, grid);
+    if (above_val == '#' || above_right_val == '#') return false;
 }
 
-auto can_robot_move_vert2(char dirchar, const std::vector<std::vector<char>>& grid) {
+auto can_robot_move_vert(char dirchar, const std::vector<std::vector<char>>& grid) {
     auto robot = find_robot(grid);
     auto above = add(robot, chartovec(dirchar));
     if (!check_bounds(above.first, above.second, grid)) return false;
@@ -119,14 +86,10 @@ auto can_robot_move_vert2(char dirchar, const std::vector<std::vector<char>>& gr
     return false;
 }
 
-auto box_move2(char dirchar, std::pair<ll, ll> box, std::vector<std::vector<char>>& grid) -> bool {
+auto box_move2(char dirchar, std::pair<i64, i64> box, std::vector<std::vector<char>>& grid) -> bool {
     auto box_right = add(box, chartovec('>'));
     auto above = add(box, chartovec(dirchar));
     auto above_right = add(above, chartovec('>'));
-    if (!check_bounds(above.first, above.second, grid) 
-        || !check_bounds(above_right.first, above_right.second, grid)) {
-        std::println("Unexpected out-of-bounds in ripple_move2");
-    }
     auto above_val = grid.at(above.first).at(above.second);
     auto above_right_val = grid.at(above_right.first).at(above_right.second);
 
@@ -137,7 +100,6 @@ auto box_move2(char dirchar, std::pair<ll, ll> box, std::vector<std::vector<char
                   grid.at(above_right.first).at(above_right.second));
         return true;
     }
-
     if (above_val == '[' && above_right_val == ']') {
         box_move2(dirchar, above, grid);
         std::swap(grid.at(box.first).at(box.second), 
@@ -146,7 +108,6 @@ auto box_move2(char dirchar, std::pair<ll, ll> box, std::vector<std::vector<char
                   grid.at(above_right.first).at(above_right.second));
         return true;
     }
-
     if (above_val == ']' && above_right_val == '[') {
         box_move2(dirchar, add(above, chartovec('<')), grid);
         box_move2(dirchar, above_right, grid);
@@ -156,7 +117,6 @@ auto box_move2(char dirchar, std::pair<ll, ll> box, std::vector<std::vector<char
                   grid.at(above_right.first).at(above_right.second));
         return true;
     }
-
     if (above_val == ']' && above_right_val == '.') {
         box_move2(dirchar, add(above, chartovec('<')), grid);
         std::swap(grid.at(box.first).at(box.second), 
@@ -165,7 +125,6 @@ auto box_move2(char dirchar, std::pair<ll, ll> box, std::vector<std::vector<char
                   grid.at(above_right.first).at(above_right.second));
         return true;
     }
-
     if (above_val == '.' && above_right_val == '[') {
         box_move2(dirchar, above_right, grid);
         std::swap(grid.at(box.first).at(box.second), 
@@ -174,60 +133,31 @@ auto box_move2(char dirchar, std::pair<ll, ll> box, std::vector<std::vector<char
                   grid.at(above_right.first).at(above_right.second));
         return true;
     }
-
-    std::println("Unhandled situation in box_move2: {} {},{}", dirchar, box.first, box.second);
-    std::exit(-1);
 }
 
 auto try_robot_move(char dirchar, std::vector<std::vector<char>>& grid) {
     auto robot = find_robot(grid);
     auto above = add(robot, chartovec(dirchar));
-    if (grid.at(above.first).at(above.second) == '.') {
-        std::swap(grid.at(robot.first).at(robot.second), grid.at(above.first).at(above.second));
-        return true;
-    } 
-    if (grid.at(above.first).at(above.second) == '#') {
-        return false;
-    }
-    if (grid.at(above.first).at(above.second) == '[') {
-        if (box_move2(dirchar, above, grid)) {
-            std::swap(grid.at(robot.first).at(robot.second), grid.at(above.first).at(above.second));
-            return true;
-        }
-        return false;
-    }
-    if (grid.at(above.first).at(above.second) == ']') {
-        if (box_move2(dirchar, add(above, chartovec('<')), grid)) {
-            std::swap(grid.at(robot.first).at(robot.second), grid.at(above.first).at(above.second));
-            return true;
-        }
-        return false;
-    }
+    if (grid.at(above.first).at(above.second) == '.') return std::swap(grid.at(robot.first).at(robot.second), grid.at(above.first).at(above.second)), true;
+    if (grid.at(above.first).at(above.second) == '#') return false;
+    if (grid.at(above.first).at(above.second) == '[') return box_move2(dirchar, above, grid) ? std::swap(grid.at(robot.first).at(robot.second), grid.at(above.first).at(above.second)), true : false;
+    if (grid.at(above.first).at(above.second) == ']') return box_move2(dirchar, add(above, chartovec('<')), grid) ? std::swap(grid.at(robot.first).at(robot.second), grid.at(above.first).at(above.second)), true : false;
     return false;
 }
 
 int main() {
+    i64 ans1{0};
+    i64 ans2{0};
     auto f = std::ifstream("input.txt");
     auto grid = std::vector<std::vector<char>>{};
     std::string moves{};
 
-    for (std::string line{}; std::getline(f, line);) {
-        if (line.size() < 3) break;
-        grid.emplace_back(line.begin(), line.end());
-    }
-    for (std::string line{}; std::getline(f, line);) {
-        while (line.back() == '\r' || line.back() == '\n') line = line.substr(0, line.size() - 1);
-        moves.append(line);
-    }
+    for (std::string line{}; std::getline(f, line) && (3 < line.size());) grid.emplace_back(line.begin(), line.end());
+    for (std::string line{}; std::getline(f, line);) moves.append(line.substr(0, line.find_first_of('\n', '\r')));
 
-    ll ans1{0};
-    ll ans2{0};
-
-    // expanding grid
-    decltype(grid) wide_grid = {};
-    for (const auto& row : grid) {
-        std::string wide_row{""};
-        for (char val : row) {
+    auto wide_grid = grid | std::views::transform([](const auto& row) -> std::vector<char> {
+        std::string wide_row{};
+        for (auto val : row) {
             switch (val) {
                 case '#': wide_row += ("##");break;
                 case 'O': wide_row += ("[]");break;
@@ -235,38 +165,22 @@ int main() {
                 case '@': wide_row += ("@.");break;
             }
         }
-        wide_grid.emplace_back(wide_row.begin(), wide_row.end());
-        std::println("wide_row: {}", wide_row);
-    }
+        return {wide_row.begin(), wide_row.end()};
+    }) | std::ranges::to<decltype(grid)>();
 
-    // Part 1
-    for (ll i = 0; i < moves.size(); i++) {
-        try_move(moves.at(i), grid);
-    }
-    for (ll y = 0; y < grid.size(); y++) {
-        for (ll x = 0; x < grid.at(0).size(); x++) {
-            if (grid.at(y).at(x) == 'O') {
-                ans1 += y*100 + x;
-            }
-        }
-    }
+    for (auto move : moves) try_move(move, grid);
+    for (i64 y = 0; y < grid.size(); y++) 
+        for (i64 x = 0; x < grid.at(0).size(); x++) 
+            if (grid.at(y).at(x) == 'O') ans1 += y*100 + x;
 
-    for (ll i = 0; i < moves.size(); i++) {
+    for (i64 i = 0; i < moves.size(); i++) {
         const char move = moves.at(i);
         if (move == '<' || move == '>') try_move(move, wide_grid);
-        else if (move == '^' || move == 'v') {
-            if (can_robot_move_vert2(move, wide_grid)) {
-                try_robot_move(move, wide_grid);
-            }
-        } else std::println("Unexpected move {}", move);
+        else if (move == '^' || move == 'v') if (can_robot_move_vert(move, wide_grid)) try_robot_move(move, wide_grid);
     }
-    for (ll y = 0; y < wide_grid.size(); y++) {
-        for (ll x = 0; x < wide_grid.at(0).size(); x++) {
-            if (wide_grid.at(y).at(x) == '[') {
-                ans2 += y*100 + x;
-            }
-        }
-    }
+    for (i64 y = 0; y < wide_grid.size(); y++)
+        for (i64 x = 0; x < wide_grid.at(0).size(); x++)
+            if (wide_grid.at(y).at(x) == '[') ans2 += y * 100 + x;
 
     std::println("Answer1: {}", ans1);
     std::println("Answer2: {}", ans2);
