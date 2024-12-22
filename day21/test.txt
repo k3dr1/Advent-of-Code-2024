@@ -1,0 +1,29 @@
+==CORRECT===========
+code 379A: 64*379=24256
+^A           <<^^A                   >>A         vvvA 
+<A>A         v<<AA>^AA>A             vAA^A       v<AAA^>A
+v<<A>>^AvA^A v<A<AA>>^AAvA^<A>AAvA^A <vA^>AA<A>A <vA<A>>^AAA<Av>A^A
+==SUSSY=============
+code 379A: 68*379=25772
+^A           ^^<<A                       >>A         vvvA 
+<A>A         <AAv<AA>>^A                 vAA^A       v<AAA^>A
+v<<A>>^AvA^A v<<A>>^AAv<A<A>>^AAvAA^<A>A v<A^>AA<A>A v<A<A>>^AAA<Av>A^A
+
+
+
+^A                <<^^A                            >>A              vvvA 
+<A>A              v<<AA>^AA>A                      vAA^A            v<AAA^>A
+v<<A>>^AvA^A      v<A<AA>>^AAvA^<A>AAvA^A          <vA^>AA<A>A      <vA<A>>^AAA<Av>A^A
+======================================================================================
+^A                ^^<<A                            >>A              vvvA 
+<A>A              <AAv<AA>>^A                      vAA^A            v<AAA^>A
+v<<A>>^AvA^A      v<<A>>^AAv<A<A>>^AAvAA^<A>A      v<A^>AA<A>A      v<A<A>>^AAA<Av>A^A
+
+
+<           <      ^         ^      A
+v<<A        A      >^A       A      >A
+v<A<AA>>^A  A      vA^<A>A   A      vA^A
+
+^           ^      <         <      A
+<A          A      v<A       A      >>^A
+v<<A>>^A    A      v<A<A>>^A A      vAA^<A>A
